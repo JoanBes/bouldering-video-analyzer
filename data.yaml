@@ -1,0 +1,13 @@
+# Class IDs follow the dataset annotations, not alphabetical/display order.
+# Source: https://github.com/Marcuss2106/indoor-climbing-gym-hold-classification/blob/master/climbing_gym.yaml
+path: data/Final_Dataset
+train: train/images
+val: valid/images
+nc: 6
+names:
+  0: Crimp
+  1: Jug
+  2: Pinch
+  3: Pocket
+  4: Slope
+  5: Volume

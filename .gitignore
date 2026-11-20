@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+
+.ultralytics/
+artifacts/
+logs/
+
+data/Final_Dataset/
+data/archive.zip
+models/*.pt
+videos/originales/
+videos/analizados/
