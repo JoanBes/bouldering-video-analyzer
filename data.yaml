@@ -3,6 +3,7 @@
 path: data/Final_Dataset
 train: train/images
 val: valid/images
+test: test/images
 nc: 6
 names:
   0: Crimp

@@ -174,6 +174,27 @@ applications less responsive. Run `python train_holds.py --help` for options.
 Pocket, Slope, and Volume. Confirm these against the specific dataset release
 before training; changing names without remapping label IDs corrupts labels.
 
+## Hold-detector evaluation
+
+The saved best checkpoint was evaluated once on the held-out `test` split
+(213 images, 4,677 labeled holds). It achieved precision 95.1%, recall 93.4%,
+mAP@0.50 96.4%, and mAP@0.50:0.95 91.7%. The earlier validation results were
+95.7%, 90.3%, 95.3%, and 89.4%, respectively. For object detection, mAP is
+more informative than a single classification-accuracy percentage.
+
+To repeat the test evaluation from the project root:
+
+```bash
+python -c 'from ultralytics import YOLO; r = YOLO("models/best_holds.pt").val(data="data.yaml", split="test"); print(r.results_dict)'
+```
+
+The diagnostic plots from this evaluation are in
+`artifacts/runs/detect/test-eval/`.
+
+The test split is separate from training and checkpoint selection, but comes
+from the same dataset; these scores do not measure performance on new gyms,
+cameras, or climbers.
+
 ## How to interpret the results
 
 Results are observational 2D image-space heuristics, **not** measured grip,
