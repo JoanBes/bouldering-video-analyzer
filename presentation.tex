@@ -18,12 +18,12 @@
 
 \begin{document}
 
-% 0:30
+% 0:20
 \begin{frame}
   \titlepage
 \end{frame}
 
-% 1:15
+% 1:10
 \begin{frame}{Motivation: make practice easier to review}
   \begin{itemize}
     \item A climbing video preserves a move, but it does not explain which
@@ -40,7 +40,7 @@
   \end{block}
 \end{frame}
 
-% 1:00
+% 0:55
 \begin{frame}{What is Crux?}
   \begin{columns}[T,onlytextwidth]
     \column{0.52\textwidth}
@@ -48,7 +48,7 @@
       \vspace{0.5em}
       \begin{enumerate}
         \item Select a video recorded with a fixed view of the wall.
-        \item Detect the holds and estimate the climber's pose.
+        \item Map holds, then estimate the climber's pose frame by frame.
         \item Review an annotated video and export the result.
       \end{enumerate}
       \vspace{0.4em}
@@ -60,10 +60,10 @@
   \end{columns}
 \end{frame}
 
-% 1:00
+% 0:55
 \begin{frame}{Data: teaching the detector what a hold looks like}
   \begin{columns}[T,onlytextwidth]
-    \column{0.62\textwidth}
+    \column{0.42\textwidth}
       \begin{itemize}
         \item We use the Indoor Climbing Gym Hold Classification dataset.
         \item Its labeled images contain six hold categories:
@@ -73,21 +73,24 @@
         \item The held-out test split contains \textbf{213 images} and
           \textbf{4,677 labeled holds}.
       \end{itemize}
-    \column{0.34\textwidth}
-      \begin{block}{Important distinction}
-        The test split is held out from training, but it comes from the same
-        dataset. It does not by itself establish performance in new gyms.
-      \end{block}
+    \column{0.56\textwidth}
+      \centering
+      \includegraphics[width=\linewidth,height=0.49\textheight,keepaspectratio]
+        {training-class-balance.png}
+      \par\vspace{0.2em}
+      {\scriptsize Class shares by split; the test split is kept separate from
+      model fitting.}
   \end{columns}
   \vfill
   {\tiny Dataset: Indoor Climbing Gym Hold Classification, linked in the
-  project README.}
+  project README. The test split comes from the same dataset, so these data
+  alone do not establish performance in new gyms.}
 \end{frame}
 
-% 1:30
+% 1:25
 \begin{frame}{AI models: two different vision tasks}
   \begin{columns}[T,onlytextwidth]
-    \column{0.48\textwidth}
+    \column{0.46\textwidth}
       \begin{block}{Hold detection}
         An Ultralytics YOLO object detector finds hold bounding boxes and
         assigns one of the six categories. The training script uses YOLO
@@ -97,42 +100,47 @@
         A YOLOv8m-pose model estimates body keypoints, including shoulders,
         elbows, wrists, hips, knees, and ankles.
       \end{block}
-    \column{0.48\textwidth}
-      \begin{block}{Video pipeline}
-        \centering
-        Fixed-camera video\\[0.35em]
-        $\Downarrow$\\[0.35em]
-        Map holds from the first 15 frames\\[0.35em]
-        $\Downarrow$\\[0.35em]
-        Estimate pose frame by frame\\[0.35em]
-        $\Downarrow$\\[0.35em]
-        Annotated video and review cues
-      \end{block}
+    \column{0.52\textwidth}
+      \centering
+      \includegraphics[width=\linewidth,height=0.56\textheight,keepaspectratio]
+        {training-curves.png}
+      \par\vspace{0.2em}
+      {\scriptsize Archived run: training losses fall as validation metrics
+      improve.}
+  \end{columns}
+  \vfill
+  {\scriptsize Holds are mapped from the first 15 frames; pose is estimated
+  throughout the video. Hand-written rules turn model outputs into cues.}
+\end{frame}
+
+% 1:10
+\begin{frame}{From detections to feedback}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.49\textwidth}
       \small
-      The two models provide visual estimates; the coaching layer combines
-      them with transparent, hand-written rules.
+      \begin{itemize}
+        \item Confidence-check and smooth pose keypoints.
+        \item Associate wrists with nearby hold boxes using a torso-scaled
+          distance.
+        \item Estimate joint angles and hip position relative to visible
+          ankles.
+        \item Show a rule-based cue only after it persists, reducing
+          flicker.
+      \end{itemize}
+      \begin{alertblock}{Estimates, not ground truth}
+        Wrist proximity does not prove contact; visible ankles do not prove
+        support.
+      \end{alertblock}
+    \column{0.49\textwidth}
+      \centering
+      \includegraphics[width=\linewidth,height=0.66\textheight,keepaspectratio]
+        {analyzed-result-wall-2.png}
+      \par\vspace{0.2em}
+      {\scriptsize Example annotated frame: detected holds and pose.}
   \end{columns}
 \end{frame}
 
-% 1:15
-\begin{frame}{From detections to feedback}
-  \begin{itemize}
-    \item Pose keypoints are confidence-checked and smoothed over time.
-    \item A wrist is associated with a detected hold when it is close to the
-      hold box, using torso length to scale the tolerance.
-    \item The program estimates joint angles and compares the hip position
-      with visible ankle positions as a rough balance proxy.
-    \item Simple rules generate category-specific cues. Cues must persist
-      before appearing, which reduces flicker in the video.
-  \end{itemize}
-  \vspace{0.4em}
-  \begin{alertblock}{These are estimates, not ground truth}
-    Wrist proximity does not prove contact, and visible ankles do not prove
-    that a foot is supporting the climber.
-  \end{alertblock}
-\end{frame}
-
-% 1:15
+% 1:10
 \begin{frame}{Results: a promising detector on the held-out split}
   \begin{columns}[T,onlytextwidth]
     \column{0.46\textwidth}
@@ -155,7 +163,27 @@
   \end{columns}
 \end{frame}
 
-% 1:15
+% 0:25
+\begin{frame}{Validation: precision versus recall}
+  \centering
+  \includegraphics[width=0.88\linewidth,height=0.75\textheight,keepaspectratio]
+    {training-pr-curve.png}
+  \par\vspace{0.2em}
+  {\small Per-class precision--recall curves; validation mAP@0.50 was 95.3\%.
+  This is distinct from the held-out test result.}
+\end{frame}
+
+% 0:25
+\begin{frame}{Validation: where predictions are confused}
+  \centering
+  \includegraphics[width=0.76\linewidth,height=0.75\textheight,keepaspectratio]
+    {training-confusion-matrix.png}
+  \par\vspace{0.2em}
+  {\small Normalized validation confusion matrix. Most predictions fall on
+  the diagonal; background errors remain.}
+\end{frame}
+
+% 1:10
 \begin{frame}{Potential impact and current limitations}
   \begin{columns}[T,onlytextwidth]
     \column{0.48\textwidth}
@@ -183,7 +211,7 @@
   \end{columns}
 \end{frame}
 
-% 1:00
+% 0:55
 \begin{frame}{Conclusion}
   \begin{itemize}
     \item Crux combines hold detection and pose estimation to annotate
